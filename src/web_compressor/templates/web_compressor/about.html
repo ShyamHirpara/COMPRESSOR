@@ -1,0 +1,83 @@
+{% extends 'web_compressor/base.html' %} {% block title %}About - Magical Image
+Compressor{% endblock %} {% block content %}
+<div class="card" style="max-width: 800px; margin: 0 auto; text-align: center">
+    <h1>About the Project</h1>
+    <p>
+        Magical Image Compressor is a tool designed to help you reduce image
+        file sizes without sacrificing quality. Whether you're a web developer,
+        a photographer, or just someone looking to save space, our tool provides
+        an easy-to-use interface to compress your images efficiently.
+    </p>
+
+    <div
+        style="
+            margin: 3rem 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            padding: 2rem 0;
+        "
+    >
+        <h2>Meet the Developer</h2>
+        <h3>Shyam Hirpara</h3>
+        <p>
+            Passionate about building efficient web tools and solving real-world
+            problems through code.
+        </p>
+
+        <div
+            style="
+                display: flex;
+                justify-content: center;
+                gap: 1rem;
+                margin-top: 1rem;
+            "
+        >
+            <a
+                href="https://www.linkedin.com/in/shyam-hirpara-920688289/"
+                target="_blank"
+                class="btn"
+                style="background: #0077b5"
+                ><i class="fab fa-linkedin"></i> LinkedIn</a
+            >
+            <a
+                href="https://github.com/ShyamHirpara"
+                target="_blank"
+                class="btn"
+                style="background: #333"
+                ><i class="fab fa-github"></i> GitHub</a
+            >
+        </div>
+    </div>
+
+    <h3>Technologies Used</h3>
+    <div
+        style="
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        "
+    >
+        <span
+            class="btn"
+            style="background: rgba(255, 255, 255, 0.1); cursor: default"
+            >Django</span
+        >
+        <span
+            class="btn"
+            style="background: rgba(255, 255, 255, 0.1); cursor: default"
+            >Python</span
+        >
+        <span
+            class="btn"
+            style="background: rgba(255, 255, 255, 0.1); cursor: default"
+            >Pillow</span
+        >
+        <span
+            class="btn"
+            style="background: rgba(255, 255, 255, 0.1); cursor: default"
+            >HTML5 & CSS3</span
+        >
+    </div>
+</div>
+{% endblock %}

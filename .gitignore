@@ -1,0 +1,44 @@
+# General
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Media
+media/
+!media/.git
+# If you want to keep the directory structure but ignore contents:
+# media/*
+# !media/.keep
+
+# Static
+staticfiles/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Output
+*.zip
+*.tar.gz

@@ -10,6 +10,10 @@ from django.http import JsonResponse
 from django.core.files.base import ContentFile
 from django.core.files import File
 from PIL import Image
+
+# Disable DecompressionBombWarning for large images
+Image.MAX_IMAGE_PIXELS = None
+
 from .models import CompressedImage
 
 def compress_image_logic(input_path, output_path, level='normal', output_format='JPEG'):

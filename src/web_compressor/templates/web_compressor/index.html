@@ -119,6 +119,9 @@
             <p id="file-label">
                 Drag & Drop your <strong>JPEG</strong> here or Click to Select
             </p>
+            <p style="font-size: 0.8rem; opacity: 0.7; margin-top: 5px">
+                (Max size: 45MB)
+            </p>
             <input
                 type="file"
                 name="image"
@@ -462,6 +465,18 @@
         errorMsg.style.display = "none";
         document.getElementById("results-container").style.display = "none";
 
+        // --- Limit Check (45MB) ---
+        const MAX_SIZE_MB = 45;
+        const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+
+        if (file.size > MAX_SIZE_BYTES) {
+            errorMsg.textContent = `File is too large! Maximum size is ${MAX_SIZE_MB}MB.`;
+            errorMsg.style.display = "block";
+            input.value = ""; // Clear the input
+            label.innerHTML = "Upload Failed. File Too Large.";
+            return;
+        }
+
         // --- 1. Upload immediately ---
         showOverlay("Uploading image...");
 
@@ -522,34 +537,48 @@
     }
 
     function handleCompress() {
-        const filename = document.getElementById("uploaded-filename").value;
+        // Get user selections
+        const fileInput = document.getElementById("uploaded-filename");
+        const filename = fileInput.value;
+
         if (!filename) {
-            alert("No file uploaded!");
+            alert("No file uploaded! Please upload an image first.");
             return;
         }
 
-        const form = document.getElementById("compressor-form");
-        const level = form.querySelector('input[name="level"]:checked').value;
-        const format = form.querySelector('input[name="format"]:checked').value;
+        const levelInput = document.querySelector(
+            'input[name="level"]:checked',
+        );
+        const formatInput = document.querySelector(
+            'input[name="format"]:checked',
+        );
+
+        const level = levelInput ? levelInput.value : "normal";
+        const format = formatInput ? formatInput.value : "JPEG";
 
         const errorMsg = document.getElementById("error-message");
         const resultsContainer = document.getElementById("results-container");
 
-        // --- 2. Compress ---
+        // Show overlay
         showOverlay("Compressing image...");
 
+        // Prepare data
         const formData = new FormData();
         formData.append("filename", filename);
         formData.append("level", level);
         formData.append("format", format);
 
+        const csrfTokenInput = document.querySelector(
+            "[name=csrfmiddlewaretoken]",
+        );
+        const csrfToken = csrfTokenInput ? csrfTokenInput.value : "";
+
+        // API Call
         fetch("{% url 'compress_image' %}", {
             method: "POST",
             body: formData,
             headers: {
-                "X-CSRFToken": document.querySelector(
-                    "[name=csrfmiddlewaretoken]",
-                ).value,
+                "X-CSRFToken": csrfToken,
             },
         })
             .then((response) => response.json())
@@ -559,33 +588,36 @@
                 if (data.error) {
                     errorMsg.textContent = data.error;
                     errorMsg.style.display = "block";
-                    return;
-                }
-
-                if (data.results && data.results.length > 0) {
+                } else if (data.results && data.results.length > 0) {
                     const result = data.results[0];
 
-                    // Update Results UI
-                    document.getElementById("preview-image").src = result.url;
-                    document.getElementById("result-format").textContent =
-                        result.format;
-                    document.getElementById("result-size").textContent =
-                        result.size;
-
+                    // Update specific elements
+                    const previewImg = document.getElementById("preview-image");
+                    const resultFormat =
+                        document.getElementById("result-format");
+                    const resultSize = document.getElementById("result-size");
                     const downloadLink =
                         document.getElementById("download-link");
-                    downloadLink.href = result.url;
-                    downloadLink.download = result.filename;
+
+                    if (previewImg) previewImg.src = result.url;
+                    if (resultFormat) resultFormat.textContent = result.format;
+                    if (resultSize) resultSize.textContent = result.size;
+
+                    if (downloadLink) {
+                        downloadLink.href = result.url;
+                        downloadLink.setAttribute("download", result.filename); // Ensure filename is used
+                    }
 
                     resultsContainer.style.display = "block";
                     resultsContainer.scrollIntoView({ behavior: "smooth" });
                 }
             })
-            .catch((err) => {
+            .catch((error) => {
+                console.error("Error:", error);
                 hideOverlay();
-                errorMsg.textContent = "An error occurred during compression.";
+                errorMsg.textContent =
+                    "An error occurred during compression. Please try again.";
                 errorMsg.style.display = "block";
-                console.error(err);
             });
     }
 </script>

@@ -3,9 +3,6 @@ import shutil
 from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
-from django.contrib.auth import login, logout, authenticate
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.core.files.base import ContentFile
 from django.core.files import File
@@ -87,40 +84,6 @@ def compress_image_logic(input_path, output_path, level='normal', output_format=
     except Exception as e:
         print(f"Error: {e}")
         return False
-
-def register_view(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('index')
-    else:
-        form = UserCreationForm()
-    return render(request, 'web_compressor/register.html', {'form': form})
-
-def login_view(request):
-    if request.method == 'POST':
-        form = AuthenticationForm(data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            return redirect('index')
-    else:
-        form = AuthenticationForm()
-    return render(request, 'web_compressor/login.html', {'form': form})
-
-def logout_view(request):
-    logout(request)
-    return redirect('index')
-
-@login_required
-def delete_image(request, image_id):
-    if request.method == 'POST':
-        image = get_object_or_404(CompressedImage, id=image_id, user=request.user)
-        image.delete()
-        return JsonResponse({'success': True})
-    return JsonResponse({'success': False}, status=400)
 
 def index(request):
     context = {}
@@ -229,13 +192,19 @@ def index(request):
 def upload_temp_image_view(request):
     if request.method == 'POST' and request.FILES.get('image'):
         try:
-            # 1. If user is authenticated, clear their previous compressed images (DB + files)
-            if request.user.is_authenticated:
-                for img in CompressedImage.objects.filter(user=request.user):
-                    img.delete()
-
             media_root_str = str(settings.MEDIA_ROOT)
             temp_dir = os.path.join(media_root_str, 'temp')
+            
+            # 1. Clear previous uploaded image for this session
+            previous_filename = request.session.get('uploaded_filename')
+            if previous_filename:
+                prev_path = os.path.join(temp_dir, previous_filename)
+                if os.path.exists(prev_path):
+                     try:
+                        os.remove(prev_path)
+                     except Exception as e:
+                        print(f"Error deleting previous file: {e}")
+
             if not os.path.exists(temp_dir):
                 os.makedirs(temp_dir)
 
@@ -266,6 +235,9 @@ def upload_temp_image_view(request):
             fs = FileSystemStorage(location=temp_dir, base_url='/media/temp/')
             # Save using a unique name to prevent collisions if needed, or rely on fs handles
             filename = fs.save(uploaded_file.name, uploaded_file)
+            
+            # Store filename in session to track for deletion on next upload
+            request.session['uploaded_filename'] = filename
             
             return JsonResponse({'filename': filename})
         except Exception as e:
@@ -316,30 +288,12 @@ def compress_view(request):
                 file_size_text = f"{file_size_mb:.2f} MB"
                 final_url = fs.url(out_filename)
                 
-                # If logged in, save to DB
-                if request.user.is_authenticated:
-                     # Delete ALL previous images for this user
-                    previous_images = CompressedImage.objects.filter(user=request.user)
-                    for img in previous_images:
-                        img.delete()
-
-                    with open(out_path, 'rb') as f:
-                        compressed_obj = CompressedImage(
-                            user=request.user,
-                            original_filename=out_filename,
-                            size_text=file_size_text,
-                            format=target_fmt['label']
-                        )
-                        compressed_obj.image.save(out_filename, File(f), save=True)
-                        final_url = compressed_obj.image.url
-                    
-                    # Cleanup temp output file if saved to DB (since DB saves its own copy)
-                    if os.path.exists(out_path):
-                        os.remove(out_path)
+                # Cleanup previous compressed files for this session if needed
+                # For now we rely on the implementation where only one upload is active per session usually
                 
-                # Cleanup INPUT file
-                if os.path.exists(input_path):
-                    os.remove(input_path)
+                # IMPORTANT: We do NOT delete the input file here anymore, 
+                # because the user might want to re-compress the same uploaded image with different settings.
+                # The input file is cleaned up when a NEW file is uploaded (in upload_temp_image_view).
 
                 return JsonResponse({
                     'results': [{

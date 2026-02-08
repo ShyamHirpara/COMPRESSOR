@@ -316,28 +316,6 @@ def compress_view(request):
 from django.core.mail import send_mail
 
 def contact_view(request):
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        email = request.POST.get('email')
-        message = request.POST.get('message')
-        
-        # Send email (Console Backend will print to terminal)
-        subject = f"Contact Form: {name}"
-        full_message = f"From: {name} <{email}>\n\nMessage:\n{message}"
-        try:
-            send_mail(
-                subject,
-                full_message,
-                settings.DEFAULT_FROM_EMAIL if hasattr(settings, 'DEFAULT_FROM_EMAIL') else 'noreply@example.com',
-                ['hiraparashyam666@gmail.com'], # Configure this to the actual recipient
-                fail_silently=False,
-            )
-            # In a real app, adding a success message here would be good
-        except Exception as e:
-            print(f"Email Error: {e}")
-            
-        return redirect('contact') # Ideally redirect to a success page or show message
-        
     return render(request, 'web_compressor/contact.html')
 
 def about_view(request):

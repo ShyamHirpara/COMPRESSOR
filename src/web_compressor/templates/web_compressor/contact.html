@@ -1,63 +1,168 @@
 {% extends 'web_compressor/base.html' %} {% block title %}Contact - Magical
 Image Compressor{% endblock %} {% block content %}
-<div class="card" style="max-width: 600px; margin: 0 auto; text-align: left">
-    <h1>Get in Touch</h1>
-    <p>
-        Have questions, feedback, or just want to say hi? Drop me a message
-        below!
+<div class="card" style="max-width: 800px; margin: 0 auto; text-align: center">
+    <h1>Contact the Developer</h1>
+    <p
+        style="
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            color: #94a3b8;
+        "
+    >
+        This Image Compressor is a free-to-use tool available to everyone
+        without any sign-up or login requirements.
+        <br /><br />
+        If you have any questions, suggestions, or just want to connect, feel
+        free to reach out through any of the platforms below!
     </p>
 
-    <form
-        method="post"
-        action="{% url 'contact' %}"
-        style="display: flex; flex-direction: column; gap: 1rem"
+    <div
+        style="
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-bottom: 3rem;
+        "
     >
-        {% csrf_token %}
-        <label>Name</label>
-        <input
-            type="text"
-            name="name"
-            required
-            style="
-                padding: 1rem;
-                border-radius: 8px;
-                border: 1px solid var(--border);
-                background: var(--surface);
-                color: var(--text);
-            "
-        />
+        <!-- LinkedIn -->
+        <a
+            href="https://www.linkedin.com/in/shyam-hirpara-490353257/"
+            target="_blank"
+            style="text-decoration: none; transition: transform 0.2s"
+            onmouseover="this.style.transform = 'scale(1.1)'"
+            onmouseout="this.style.transform = 'scale(1)'"
+        >
+            <div
+                style="
+                    background: #0077b5;
+                    padding: 1rem;
+                    border-radius: 50%;
+                    width: 60px;
+                    height: 60px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                "
+            >
+                <i
+                    class="fab fa-linkedin-in"
+                    style="color: white; font-size: 1.8rem"
+                ></i>
+            </div>
+            <p style="margin-top: 0.5rem; font-weight: 600; color: var(--text)">
+                LinkedIn
+            </p>
+        </a>
 
-        <label>Email</label>
-        <input
-            type="email"
-            name="email"
-            required
-            style="
-                padding: 1rem;
-                border-radius: 8px;
-                border: 1px solid var(--border);
-                background: var(--surface);
-                color: var(--text);
-            "
-        />
+        <!-- GitHub -->
+        <a
+            href="https://github.com/ShyamHirpara"
+            target="_blank"
+            style="text-decoration: none; transition: transform 0.2s"
+            onmouseover="this.style.transform = 'scale(1.1)'"
+            onmouseout="this.style.transform = 'scale(1)'"
+        >
+            <div
+                style="
+                    background: #333;
+                    padding: 1rem;
+                    border-radius: 50%;
+                    width: 60px;
+                    height: 60px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                "
+            >
+                <i
+                    class="fab fa-github"
+                    style="color: white; font-size: 1.8rem"
+                ></i>
+            </div>
+            <p style="margin-top: 0.5rem; font-weight: 600; color: var(--text)">
+                GitHub
+            </p>
+        </a>
 
-        <label>Message</label>
-        <textarea
-            name="message"
-            rows="5"
-            required
-            style="
-                padding: 1rem;
-                border-radius: 8px;
-                border: 1px solid var(--border);
-                background: var(--surface);
-                color: var(--text);
-            "
-        ></textarea>
+        <!-- Email -->
+        <a
+            href="mailto:hiraparashyam666@gmail.com"
+            style="text-decoration: none; transition: transform 0.2s"
+            onmouseover="this.style.transform = 'scale(1.1)'"
+            onmouseout="this.style.transform = 'scale(1)'"
+        >
+            <div
+                style="
+                    background: #ea4335;
+                    padding: 1rem;
+                    border-radius: 50%;
+                    width: 60px;
+                    height: 60px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                "
+            >
+                <i
+                    class="fas fa-envelope"
+                    style="color: white; font-size: 1.8rem"
+                ></i>
+            </div>
+            <p style="margin-top: 0.5rem; font-weight: 600; color: var(--text)">
+                Email
+            </p>
+        </a>
 
-        <button type="submit" class="btn" style="width: 100%">
-            Send Message
-        </button>
-    </form>
+        <!-- Instagram -->
+        <a
+            href="https://www.instagram.com/shyam_hirpara_/"
+            target="_blank"
+            style="text-decoration: none; transition: transform 0.2s"
+            onmouseover="this.style.transform = 'scale(1.1)'"
+            onmouseout="this.style.transform = 'scale(1)'"
+        >
+            <div
+                style="
+                    background: linear-gradient(
+                        45deg,
+                        #f09433 0%,
+                        #e6683c 25%,
+                        #dc2743 50%,
+                        #cc2366 75%,
+                        #bc1888 100%
+                    );
+                    padding: 1rem;
+                    border-radius: 50%;
+                    width: 60px;
+                    height: 60px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                "
+            >
+                <i
+                    class="fab fa-instagram"
+                    style="color: white; font-size: 1.8rem"
+                ></i>
+            </div>
+            <p style="margin-top: 0.5rem; font-weight: 600; color: var(--text)">
+                Instagram
+            </p>
+        </a>
+    </div>
 </div>
+<!-- Add FontAwesome for icons -->
+<link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+/>
 {% endblock %}

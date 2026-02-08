@@ -222,6 +222,139 @@ def index(request):
 
     return render(request, 'web_compressor/index.html', context)
 
+def upload_temp_image_view(request):
+    if request.method == 'POST' and request.FILES.get('image'):
+        try:
+            # 1. If user is authenticated, clear their previous compressed images (DB + files)
+            if request.user.is_authenticated:
+                for img in CompressedImage.objects.filter(user=request.user):
+                    img.delete()
+
+            media_root_str = str(settings.MEDIA_ROOT)
+            temp_dir = os.path.join(media_root_str, 'temp')
+            if not os.path.exists(temp_dir):
+                os.makedirs(temp_dir)
+
+            # 2. General Cleanup: Remove temp files older than 1 hour (3600 seconds)
+            try:
+                import time
+                current_time = time.time()
+                one_hour_ago = current_time - 3600
+                
+                if os.path.exists(temp_dir):
+                    for f in os.listdir(temp_dir):
+                        f_path = os.path.join(temp_dir, f)
+                        if os.path.isfile(f_path):
+                            creation_time = os.path.getctime(f_path)
+                            if creation_time < one_hour_ago:
+                                try:
+                                    os.remove(f_path)
+                                except OSError:
+                                    pass 
+            except Exception as cleanup_error:
+                print(f"Cleanup warning: {cleanup_error}")
+
+            uploaded_file = request.FILES['image']
+            name, ext = os.path.splitext(uploaded_file.name)
+            if ext.lower() not in ['.jpg', '.jpeg']:
+                return JsonResponse({'error': "Only JPEG/JPG input is supported."}, status=400)
+
+            fs = FileSystemStorage(location=temp_dir, base_url='/media/temp/')
+            # Save using a unique name to prevent collisions if needed, or rely on fs handles
+            filename = fs.save(uploaded_file.name, uploaded_file)
+            
+            return JsonResponse({'filename': filename})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+def compress_view(request):
+    if request.method == 'POST':
+        try:
+            filename = request.POST.get('filename')
+            level = request.POST.get('level', 'normal')
+            output_format = request.POST.get('format', 'JPEG').upper()
+
+            if not filename:
+                return JsonResponse({'error': 'No file specified'}, status=400)
+
+            # Security: Ensure filename is just a name, no paths
+            filename = os.path.basename(filename)
+            
+            media_root_str = str(settings.MEDIA_ROOT)
+            temp_dir = os.path.join(media_root_str, 'temp')
+            input_path = os.path.join(temp_dir, filename)
+
+            if not os.path.exists(input_path):
+                return JsonResponse({'error': 'File not found or expired'}, status=404)
+
+            # Prepare output
+            name, ext = os.path.splitext(filename)
+            
+            format_map = {
+                'JPEG': {'ext': '.jpg', 'label': 'JPG'},
+                'PNG': {'ext': '.png', 'label': 'PNG'},
+                'WEBP': {'ext': '.webp', 'label': 'WEBP'}
+            }
+            target_fmt = format_map.get(output_format, format_map['JPEG'])
+            out_filename = f"{name}_{level}_compressed{target_fmt['ext']}"
+            out_path = os.path.join(temp_dir, out_filename)
+            
+            # Compress
+            success = compress_image_logic(input_path, out_path, level=level, output_format=output_format)
+            final_url = ''
+            file_size_text = ''
+
+            if success:
+                fs = FileSystemStorage(location=temp_dir, base_url='/media/temp/')
+                file_size_bytes = os.path.getsize(out_path)
+                file_size_mb = file_size_bytes / (1024*1024)
+                file_size_text = f"{file_size_mb:.2f} MB"
+                final_url = fs.url(out_filename)
+                
+                # If logged in, save to DB
+                if request.user.is_authenticated:
+                     # Delete ALL previous images for this user
+                    previous_images = CompressedImage.objects.filter(user=request.user)
+                    for img in previous_images:
+                        img.delete()
+
+                    with open(out_path, 'rb') as f:
+                        compressed_obj = CompressedImage(
+                            user=request.user,
+                            original_filename=out_filename,
+                            size_text=file_size_text,
+                            format=target_fmt['label']
+                        )
+                        compressed_obj.image.save(out_filename, File(f), save=True)
+                        final_url = compressed_obj.image.url
+                    
+                    # Cleanup temp output file if saved to DB (since DB saves its own copy)
+                    if os.path.exists(out_path):
+                        os.remove(out_path)
+                
+                # Cleanup INPUT file
+                if os.path.exists(input_path):
+                    os.remove(input_path)
+
+                return JsonResponse({
+                    'results': [{
+                        'format': target_fmt['label'],
+                        'url': final_url,
+                        'size': file_size_text,
+                        'filename': out_filename
+                    }]
+                })
+            else:
+                return JsonResponse({'error': 'Compression failed'}, status=500)
+                
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({'error': str(e)}, status=500)
+            
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
 from django.core.mail import send_mail
 
 def contact_view(request):

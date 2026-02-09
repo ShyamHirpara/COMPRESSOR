@@ -90,9 +90,39 @@ This application was developed using a modern Python web stack, focusing on perf
 
 ### Deployment & DevOps
 
-- **Gunicorn:** Configured as the production WSGI server.
-- **Whitenoise:** Integrated for serving static files efficiently in production.
-- **Environment Variables:** Used for sensitive settings (Debug mode, Secret Key).
+This project is deployed on **Render** using a robust production configuration. Below are the steps and commands used to host the application.
+
+#### 1. Configuration Setup
+
+- **Dependencies:** `gunicorn` (WSGI Interface) and `whitenoise` (Static File Serving) are included in `requirements.txt`.
+- **Gunicorn Config:** A custom `src/gunicorn_config.py` manages workers, threads, and timeouts to handle image processing loads efficiently.
+- **Static Files:** `settings.py` is configured with `STATIC_ROOT` and `Whitenoise` middleware to serve assets in production.
+
+#### 2. Render Deployment Configuration
+
+To deploy this project, the following settings were used for the Web Service:
+
+- **Build Command:**
+
+    ```bash
+    pip install -r requirements.txt && python src/manage.py collectstatic --noinput
+    ```
+
+    _Installs dependencies and gathers static files into the servable directory._
+
+- **Start Command:**
+    ```bash
+    cd src && gunicorn -c gunicorn_config.py compressor.wsgi:application
+    ```
+    _Starts the Gunicorn server from the `src` directory using the custom config._
+
+#### 3. Environment Variables
+
+Sensitive keys are not stored in the repo. The following are set in the Render Dashboard:
+
+- `PYTHON_VERSION`: `3.11.0` (Ensures compatibility)
+- `DEBUG`: `False` (Production mode)
+- `SECRET_KEY`: _[Production Secret Key]_
 
 ---
 
@@ -104,4 +134,4 @@ The application is deployed and accessible directly via the web. You do not need
 
 1.  Open the link in any modern web browser (Chrome, Firefox, Safari, Edge).
 2.  The application is fully responsive and works on both **Desktop** and **Mobile** devices.
-3.  Follow the steps outlined in Section 2 to compress your images instantly.
+3.  Follow the steps outlined in this file to compress your images instantly.
